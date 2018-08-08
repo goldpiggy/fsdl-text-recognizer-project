@@ -12,7 +12,7 @@ from text_recognizer.networks.misc import slide_window
 from text_recognizer.networks.ctc import ctc_decode
 
 
-def line_lstm_ctc(input_shape, output_shape, window_width=28, window_stride=14):
+def line_lstm_ctc(input_shape, output_shape, window_width=28, window_stride=14, lstm_units=128):
     image_height, image_width = input_shape
     output_length, num_classes = output_shape
 
@@ -35,7 +35,33 @@ def line_lstm_ctc(input_shape, output_shape, window_width=28, window_stride=14):
     # Note that lstms expect a input of shape (num_batch_size, num_timesteps, feature_length).
 
     ##### Your code below (Lab 3)
+    
+        ## Use slide_window and extract image patches from image_input.
+    image_reshaped = Reshape((image_height, image_width, 1))(image_input)
+    # (image_height, image_width, 1)
+    image_patches = Lambda(
+        function=slide_window,
+        arguments={'window_width': window_width, 'window_stride': window_stride}
+    )(image_reshaped)
+    # (num_windows, image_height, window_width, 1)
 
+    
+    ## Pass a convolutional model over each image patch to generate a feature vector per window.
+    convnet = lenet((image_height, window_width, 1), (num_classes,))  # Make a LeNet and get rid of the last two layers (softmax and dropout)
+    convnet = KerasModel(inputs=convnet.inputs, outputs=convnet.layers[-2].output)  # groups layers into an object with training and inference features.
+    convnet_outputs = TimeDistributed(convnet)(image_patches) # applies a layer to every temporal slice of an input.
+    # (num_windows, 128)
+
+
+    ## Pass these features through one or more LSTM layers.
+    lstm_output = lstm_fn(lstm_units*2, return_sequences=True)(convnet_outputs)
+    lstm_output2 = lstm_fn(lstm_units, return_sequences=True)(lstm_output)
+    # (num_windows, lstm_units)
+
+    softmax_output = Dense(num_classes, activation='softmax', name='softmax_output')(lstm_output2)
+    # (num_windows, num_classes)
+
+    
     ##### Your code above (Lab 3)
 
     input_length_processed = Lambda(

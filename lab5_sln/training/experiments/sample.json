@@ -6,30 +6,16 @@
             "model": "CharacterModel",
             "network": "mlp",
             "network_args": {
-                "num_layers": 2
+                "num_layers": 4,
+                "window_width": 28, 
+                "window_stride": 14, 
+                "conv_dim": 64,
+                "lstm_dim": 128
             },
             "train_args": {
-                "batch_size": 256
+                "batch_size": 128,
+                "epochs":16,
             }
         },
-        {
-            "dataset": "EmnistDataset",
-            "model": "CharacterModel",
-            "network": "mlp",
-            "network_args": {
-                "num_layers": 4
-            },
-            "train_args": {
-                "batch_size": 256
-            }
-        },
-        {
-            "dataset": "EmnistDataset",
-            "model": "CharacterModel",
-            "network": "lenet",
-            "train_args": {
-                "batch_size": 128
-            }
-        }
     ]
 }

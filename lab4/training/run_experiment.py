@@ -66,7 +66,7 @@ def run_experiment(experiment_config: Dict, save_weights: bool, gpu_ind: int, us
     ##### Hide lines below until Lab 4
     if use_wandb:
         wandb.init()
-        wandb.config.update(experiment_config)
+        wandb.config.update(experiment_config)  ## define all the configs : data, networks, evals...
     ##### Hide lines above until Lab 4
 
     train_model(

@@ -12,7 +12,7 @@ from text_recognizer.networks.misc import slide_window
 from text_recognizer.networks.ctc import ctc_decode
 
 
-def line_lstm_ctc(input_shape, output_shape, window_width=28, window_stride=14):
+def line_lstm_ctc(input_shape, output_shape, window_width=28, window_stride=14, conv_dim=64,lstm_dim=128):
     image_height, image_width = input_shape
     output_length, num_classes = output_shape
 
@@ -50,8 +50,23 @@ def line_lstm_ctc(input_shape, output_shape, window_width=28, window_stride=14):
     convnet_outputs = TimeDistributed(convnet)(image_patches)
     # (num_windows, 128)
 
-    lstm_output = lstm_fn(128, return_sequences=True)(convnet_outputs)
+    # lstm_output = lstm_fn(lstm_dim, return_sequences=True)(convnet_outputs)
     # (num_windows, 128)
+    
+    lstm_output = Bidirectional(lstm_fn(lstm_dim, return_sequences=True))(convnet_outputs)
+    # (num_windows, lstm_dim * 2)
+    
+    lstm_output2 = Bidirectional(lstm_fn(lstm_dim, return_sequences=True))(lstm_output)
+    # (num_windows, lstm_dim * 2)
+    
+    lstm_output2 = Bidirectional(lstm_fn(lstm_dim, return_sequences=True))(lstm_output)
+    # (num_windows, lstm_dim * 2)
+    
+    lstm_output2 = Bidirectional(lstm_fn(lstm_dim, return_sequences=True))(lstm_output)
+    # (num_windows, lstm_dim * 2)
+    
+    # lstm_output2 = lstm_fn(lstm_dim, return_sequences=True)(lstm_output)
+    # (num_windows, lstm_dim)
 
     softmax_output = Dense(num_classes, activation='softmax', name='softmax_output')(lstm_output)
     # (num_windows, num_classes)
